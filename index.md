@@ -1,5 +1,6 @@
 ---
-Title : Pix2Pix
+Title
+Pix2Pix
 ---
 ---
 개요
