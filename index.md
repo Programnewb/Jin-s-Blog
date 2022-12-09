@@ -1,6 +1,5 @@
 ---
-title: Home
-layout: home
+Title : Pix2Pix
 ---
 ---
 개요
