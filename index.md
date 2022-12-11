@@ -11,4 +11,4 @@ Pix2Pix
 Project
 ---
 GAN(Generative Adversarial Network)
-GAN은 대표적인 비지도학습(unsupervised learning)의 한 종류로 서로 대립하는 두 시스템이 서로 경쟁하는 방식으로 학습이 진행한다. Generator와 discriminator 간의 유사도를 비교하며 학습하는 알고리즘이다.
+GAN은 대표적인 비지도학습(unsupervised learning)의 한 종류로 서로 대립하는 두 시스템이 서로 경쟁하는 방식으로 학습이 진행한다. Generator와 Discriminator 간의 유사도를 비교하며 학습하는 알고리즘이다. Image 데이터를 Train Data와 Validation Data로 나누어 학습 시킨다음 Generator에서 생성되는 
