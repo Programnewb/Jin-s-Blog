@@ -28,3 +28,11 @@ GAN은 대표적인 비지도학습(unsupervised learning)의 한 종류로 서�
     <script src="https://gist.github.com/Programnewb/c7843007eea89c75a0d2bda46ee8efb9.js"></script>
     Random Image가 잘 불러 와졌는지 확인
     <script src="https://gist.github.com/Programnewb/eeb8d07d501b41f176c3b637129ee432.js"></script>
+ 5. Data Loader 생성
+    <script src="https://gist.github.com/Programnewb/5ed5df9723b508a209d43eb365ee6ca4.js"></script>
+    Data 전처리
+    <script src="https://gist.github.com/Programnewb/7ef6c710b5afb44fe1ff48bec368fb51.js"></script>
+ 6. Data Loader 사용
+    <script src="https://gist.github.com/Programnewb/aaf3757ae20cd44c258cc37342b9f861.js"></script>
+ 7. SRCNN
+    <script src="https://gist.github.com/Programnewb/cb532949f9b9acc9a84f4d4a7f0c50b9.js"></script>
