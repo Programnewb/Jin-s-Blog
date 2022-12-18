@@ -44,21 +44,160 @@ GAN은 대표적인 비지도학습(unsupervised learning)의 한 종류로 서�
     
  2. 데이터 셋 동적 다운로드 수행
     데이터 셋 다운로드를 수행한다. PC 성능에 따라 차이가 있지만 꽤나 많은 시간이 소요된다.
-    <script src="https://gist.github.com/Programnewb/f9fa7b1d821336f2490c2c656009a384.js"></script>
+    ```python
+    ## 데이터 셋 동적으로 다운로드
+    ## !는 명령어
+
+    !pip install fastai==2.4
+    ```
+    
  3. 다운로드 경로 설정
     다운로드 경로를 설정 해준다.
-    <script src="https://gist.github.com/Programnewb/971648a1ddb7449feb6c40ac6032119d.js"></script>
+    ```python
+    from fastai.data.external import untar_data, URLs
+    import glob
+
+    coco_path = untar_data(URLs.COCO_SAMPLE)
+    paths = glob.glob(str(coco_path) + "/train_sample/*.jpg")
+    # train_sample 경로 상의 모든 jpg 파일을 다운 받는다
+    # *.jpg -> jpg의 모든 항목 *은 모든이라는 의미
+    ```
  4. Image 랜덤 시드 설정
     경로 설정이 완료되었으면 다운로드한 Image에서 추출해올 이미지를 랜덤으로 정한다. 랜덤 이미지를 설정하면서, Train Data와    
     Validation Data의 갯수로 설정한다. 여기서는 4:1로 설정하였다.
-    <script src="https://gist.github.com/Programnewb/c7843007eea89c75a0d2bda46ee8efb9.js"></script>
+    ```python
+    import numpy as np
+
+    np.random.seed(1) # 랜덤 시드 정하기
+    chosen_paths = np.random.choice(paths, 5000, replace=False)
+    # 5000장의 이미지를 랜덤으로 저장하되 중복된 이미지는 안들고 온다
+    index = np.random.permutation(5000)
+
+    train_paths = chosen_paths[index[:4000]] # 앞의 4000장을 train 이미지로 사용
+    val_paths = chosen_paths[index[4000:]]
+
+    print(len(train_paths))
+    print(len(val_paths))
+    ```
     Random Image가 잘 불러 와졌는지 확인
-    <script src="https://gist.github.com/Programnewb/eeb8d07d501b41f176c3b637129ee432.js"></script>
+    ```python
+    import matplotlib
+    import matplotlib.pyplot as plt
+
+    sample = matplotlib.image.imread(train_paths[3])
+    plt.imshow(sample)
+    plt.axis("off")
+    plt.show()
+    ```
+    
  5. Data Loader 생성
-    <script src="https://gist.github.com/Programnewb/5ed5df9723b508a209d43eb365ee6ca4.js"></script>
+    ```python
+    ### 기본적인 dataloader 만드는 법
+
+    import torch
+    from torch.utils.data import Dataset
+    from torch.utils.data import DataLoader
+    # 이걸 꼭해야 데이터 로더 쓸수 잇다
+
+    ### 데이터셋 클래스 선언
+
+    class myDataset(Dataset):
+
+      # 생성자 만들기
+      def __init__(self, x, y):
+        self.x = x
+        self.y = y
+
+      # 굉장히 중요
+      def __getitem__(self, index):
+        return self.x[index], self.y[index]
+
+      # 전체 길이 함수
+      def __len__(self):
+        return self.x.shape[0]
+
+    x = np.random.randint(0, 100, 5) # x에 랜덤 숫자 생성
+    y = np.random.randint(0, 100, 5) # y에 랜덤 숫자 생성
+    x = torch.Tensor(x)
+    y = torch.Tensor(y)
+    dataset = myDataset(x,y)
+    dataloader = DataLoader(dataset, batch_size=3, num_workers=2, pin_memory=True)
+    # DataLoader 돌려보기
+    x, y = next(iter(dataloader)) # 하나씩 뽑아 보겠다 => 돌면서(다음것(dataloader))
+    ```
+    
     Data 전처리
-    <script src="https://gist.github.com/Programnewb/7ef6c710b5afb44fe1ff48bec368fb51.js"></script>
+    ```python
+    # Data 전처리
+    from torch.utils.data import Dataset, Dataloader
+    from torchvision import transforms
+    from PIL import Image
+    from skimage.color import rgb2lab, lab2rgb
+    import numpy as np
+
+    class ColorizationDataset(Dataset):
+      def __init__(self, paths, mode='train'):
+        self.mode = mode
+        self.paths = paths
+
+        if mode == 'train':
+          self.transforms = transforms.Compose([
+              transforms.Resize((256,256), Image.BICUBIC),
+              # 이미지 사이즈 조정
+              # Image.BICUBIC 이라는 알고리즘 사용하여 Resize 진행
+              transforms.RandomHorizontalFlip()
+          ])
+        elif mode == 'val':
+          self.transforms = transforms.Resize((256,256), Image.BICUBIC)
+        else:
+          raise Exception("train or validation only!!!!")
+
+      def __getitem__(self, index):
+        img = Image.open(self.paths[index]).convert("RGB")
+        # image를 self의 경로에 있는 것을 불러온다 (**회색 이미지가 있으니까 "RGB"로 변환!)
+        img = np.array(self.transforms(img))
+        # 이미지 변환 (배열형태)
+        img = rgb2lab(img).astype("float32") # RGB 채널을 LAB 채널로 변환해 주는 것!
+        img = transforms.ToTensor()(img) # Tensor 형태로 이미지 변환
+        L = img[[0], ...] /50. -1  # -1 에서 1 사이로 정규화를 진행
+        ab = img[[1,2], ...] /110. # -1 에서 1 사이로 정규화를 진행
+
+        return {'L': L, 'ab':ab}
+
+      def __len__(self):
+        return len(self.paths)
+    ```
+    
  6. Data Loader 사용
-    <script src="https://gist.github.com/Programnewb/aaf3757ae20cd44c258cc37342b9f861.js"></script>
+    ```python
+    # Data loader
+
+    dataset_train = ColorizationDataset(train_paths, mode='train')
+    dataset_val = ColorizationDataset(val_paths, mode='val')
+
+    dataloader_train = DataLoader(dataset_train, batch_size=16, num_workers=2, pin_memory=True)
+    dataloader_val = DataLoader(dataset_val, batch_size=16, num_workers=2, pin_memory=True)
+    ```
  7. SRCNN
-    <script src="https://gist.github.com/Programnewb/cb532949f9b9acc9a84f4d4a7f0c50b9.js"></script>
+    ```python
+    #SRCNN 구성
+    import torch.nn as nn
+
+    class SRCNN(nn.Module):
+      def __init__(self, num_channels=1):
+        super(SRCNN, self).__init__()
+
+        self.conv1 = nn.Conv2d(num_channels, 64, kernel_size=9, padding=9//2)
+        self.conv2 = nn.Conv2d(64, 32, kernel_size=5, padding=5//2)
+        self.conv3 = nn.Conv2d(32, num_channels, kernel_size=5, padding=5//2)
+        self.relu = nn.ReLu(inplace=True)  
+
+      def forward(self, x):
+        x = self.conv1(x)
+        x = self.relu()
+        x = self.conv2(x)
+        x = self.relu()
+        x = self.conv3(x)
+
+        return x
+    ```
