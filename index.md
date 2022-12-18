@@ -15,7 +15,8 @@ GAN은 대표적인 비지도학습(unsupervised learning)의 한 종류로 서�
 
  1. 환경 Set up
     Google colab을 사용하면서 GPU를 할당해야 한다. GPU 할당은 아래와 같이 수행했다
-    <script src="https://gist.github.com/Programnewb/6a2faa8675e156471e5aead9ac52c2a5.js"></script>
+    <script src="https://gist.github.com/Programnewb/6a2faa8675e156471e5aead9ac52c2a5.js">
+    </script>
  2. 데이터 셋 동적 다운로드 수행
     데이터 셋 다운로드를 수행한다. PC 성능에 따라 차이가 있지만 꽤나 많은 시간이 소요된다.
     <script src="https://gist.github.com/Programnewb/f9fa7b1d821336f2490c2c656009a384.js"></script>
