@@ -12,6 +12,28 @@ GAN(Generative Adversarial Network)
 GAN은 대표적인 비지도학습(unsupervised learning)의 한 종류로 서로 대립하는 두 시스템이 서로 경쟁하는 방식으로 학습이 진행한다. Generator와 Discriminator 간의 유사도를 비교하며 학습하는 알고리즘이다. Image 데이터를 Train Data와 Validation Data로 나누어 학습 시킨다음 노이즈가 포함되어 있는 이미지를 Generator에 보내면 실제 Image와 비슷한 Image를 생성해낸다. 그럼 Discriminator는 실제 Image와 Generator가 생성해낸 가짜 Image를 비교하여 정확도를 높여간다.
 
 Pooling
+ : Convolution을 거쳐서 나온 activation maps이 있을때 이를 이루는 convolution lyater을 resizing하여 새로운 layer를 얻는 것
+ 
+  ![image](https://user-images.githubusercontent.com/117645947/208297506-80651f59-88b0-4bf6-b121-974023084cef.png)
+
+Max pooling
+ : Pooling에서 최댓값을 뽑아내는것
+ 
+  ![image](https://user-images.githubusercontent.com/117645947/208297647-f80e1916-ef5a-4bac-8423-1426b32fc3af.png)
+Max pooling 목적
+ : Overfitting을 방지하기 위함
+   예제)
+   *feature = elements of input data
+
+   *parameter = elements of weight matrix
+
+   size가 96x96인 image가 주어져 있고(즉, feature의 수는 96x96개), 이를 400개의 filter로 ***Convolution**한 size 8x8x400의
+   convolution layers가 있습니다.  각 convolution layer에는 (stride를 1이라 가정하면) (96–8+1)x(96–8+1)=89x89=7921개의 
+   featur가 있고, 이런 layer가 400개이니 총 feature의 수는 89x89x400=3,168,400 이렇게 feature가 많아지면 **overfitting**의 우
+   려가 있음
+
+   Pooling 사용 시
+    ![image](https://user-images.githubusercontent.com/117645947/208297795-2925a05b-053c-41f6-a0bf-020f7cd3df7b.png)
 
  1. 환경 Set up
     Google colab을 사용하면서 GPU를 할당해야 한다. GPU 할당은 아래와 같이 수행했다.
