@@ -1,3 +1,8 @@
+---
+title: Home
+layout: Home
+---
+
 Pix2Pix
 ===
 ---
