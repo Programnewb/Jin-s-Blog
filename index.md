@@ -228,3 +228,139 @@ Max pooling 목적
 
         return x
     ```
+  8. Generator
+     ```python
+     import torch.nn as nn
+
+     class generator(nn.Module):
+       def __init__(self):
+         super(generator, self).__init__()
+
+         self.input_layer = nn.Sequential(
+             nn.Conv2d(1, 64, kernel_size=4, stride=2, padding=1, bias=False),
+         )
+
+         self.encoder_1 = nn.Sequential(
+             nn.LeakyReLU(0.2, True),
+             nn.Conv2d(64, 128, kernel_size=4, stride=2, padding=1, bias=True),
+             nn.BatchNorm2d(128)
+         )
+
+         self.encoder_2 = nn.Sequential(
+             nn.LeakyReLU(0.2, True),
+             nn.Conv2d(128, 256, kernel_size=4, stride=2, padding=1, bias=True),
+             nn.BatchNorm2d(256)
+         )
+
+         self.encoder_3 = nn.Sequential(
+             nn.LeakyReLU(0.2, True),
+             nn.Conv2d(256, 512, kernel_size=4, stride=2, padding=1, bias=True),
+             nn.BatchNorm2d(512)
+         )
+
+         self.encoder_4 = nn.Sequential(
+             nn.LeakyReLU(0.2, True),
+             nn.Conv2d(512, 512, kernel_size=4, stride=2, padding=1, bias=True),
+             nn.BatchNorm2d(512)
+         )
+
+         self.encoder_5 = nn.Sequential(
+             nn.LeakyReLU(0.2, True),
+             nn.Conv2d(512, 512, kernel_size=4, stride=2, padding=1, bias=True),
+             nn.BatchNorm2d(512)
+         )
+
+         self.encoder_6 = nn.Sequential(
+             nn.LeakyReLU(0.2, True),
+             nn.Conv2d(512, 512, kernel_size=4, stride=2, padding=1, bias=True),
+             nn.BatchNorm2d(512)
+         )
+
+         self.middle = nn.Sequential(
+             nn.LeakyReLU(0.2, True),
+             nn.Conv2d(512, 512, kernel_size=4, stride=2, padding=1, bias=False),
+             nn.ReLU(True),
+             nn.ConvTranspose2d(512, 512, kernel_size=4, stride=2, padding=1, bias=False),
+             nn.BatchNorm2d(512)
+         )
+
+         self.decoder_6 = nn.Sequential(
+             nn.ReLU(True),
+             # middle + encoder6의 값이 합쳐져 1024
+             nn.ConvTranspose2d(1024, 512, kernel_size=4, stride=2, padding=1, bias=False),
+             nn.BatchNorm2d(512),
+             nn.Dropout(0.5)
+         )
+
+         self.decoder_5 = nn.Sequential(
+             nn.ReLU(True),
+             nn.ConvTranspose2d(1024, 512, kernel_size=4, stride=2, padding=1, bias=False),
+             nn.BatchNorm2d(512),
+             nn.Dropout(0.5)
+         )
+
+         self.decoder_4 = nn.Sequential(
+             nn.ReLU(True),
+             nn.ConvTranspose2d(1024, 512, kernel_size=4, stride=2, padding=1, bias=False),
+             nn.BatchNorm2d(512),
+             nn.Dropout(0.5)
+         )
+
+         self.decoder_3 = nn.Sequential(
+             nn.ReLU(True),
+             nn.ConvTranspose2d(1024, 256, kernel_size=4, stride=2, padding=1, bias=False),
+             nn.BatchNorm2d(256),
+             nn.Dropout(0.5)
+         )
+
+         self.decoder_2 = nn.Sequential(
+             nn.ReLU(True),
+             nn.ConvTranspose2d(512, 128, kernel_size=4, stride=2, padding=1, bias=False),
+             nn.BatchNorm2d(128),
+             nn.Dropout(0.5)
+         )
+
+         self.decoder_1 = nn.Sequential(
+             nn.ReLU(True),
+             nn.ConvTranspose2d(256, 64, kernel_size=4, stride=2, padding=1, bias=False),
+             nn.BatchNorm2d(64),
+             nn.Dropout(0.5)
+         )
+
+         self.output_layer = nn.Sequential(
+             nn.ReLU(True),
+             nn.ConvTranspose2d(64, 2, kernel_size=4, stride=2, padding=1),
+             nn.Tanh()
+         )
+
+
+
+       def forward(self, x):
+         input_layer = self.input_layer(x)
+
+         encoder_1 = self.encoder_1(input_layer)
+         encoder_2 = self.encoder_2(encoder_1)
+         encoder_3 = self.encoder_3(encoder_2)
+         encoder_4 = self.encoder_4(encoder_3)
+         encoder_5 = self.encoder_5(encoder_4)
+         encoder_6 = self.encoder_6(encoder_5)
+
+         middle = self.middle(encoder_6)
+
+         cat_6 = torch.cat((middle, encoder_6), dim=1)
+         decoder_6 = self.decoder_6(cat_6)
+         cat_5 = torch.cat((decoder_6, encoder_5), dim=1)
+         decoder_5 = self.decoder_5(cat_5)
+         cat_4 = torch.cat((decoder_5, encoder_4), dim=1)
+         decoder_4 = self.decoder_4(cat_4)
+         cat_3 = torch.cat((decoder_4, encoder_3), dim=1)
+         decoder_3 = self.decoder_3(cat_3)
+         cat_2 = torch.cat((decoder_3,encoder_2), dim=1)
+         decoder_2 = self.decoder_2(cat_2)
+         cat_1 = torch.cat((decoder_2, encoder_1), dim=1)
+         decoder_1 = self.decoder_1(cat_1)
+
+         output = self.output_layer(decoder_1)
+
+         return output
+     ```
