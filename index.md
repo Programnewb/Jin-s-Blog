@@ -40,7 +40,7 @@ Max pooling 목적
    Pooling 사용 시
     ![image](https://user-images.githubusercontent.com/117645947/208297795-2925a05b-053c-41f6-a0bf-020f7cd3df7b.png)
 
- 1. 환경 Set up
+ 1. 환경 Set up :
     Google colab을 사용하면서 GPU를 할당해야 한다. GPU 할당은 아래와 같이 수행했다.
     ```python
     # GPU 할당되었는지 확인 코드
@@ -69,7 +69,7 @@ Max pooling 목적
     # drive.mount('/content/drive')
     ```
     
- 2. 데이터 셋 동적 다운로드 수행
+ 2. 데이터 셋 동적 다운로드 수행 :
     데이터 셋 다운로드를 수행한다. PC 성능에 따라 차이가 있지만 꽤나 많은 시간이 소요된다.
     ```python
     ## 데이터 셋 동적으로 다운로드
@@ -78,7 +78,7 @@ Max pooling 목적
     !pip install fastai==2.4
     ```
     
- 3. 다운로드 경로 설정
+ 3. 다운로드 경로 설정 :
     다운로드 경로를 설정 해준다.
     ```python
     from fastai.data.external import untar_data, URLs
@@ -89,7 +89,7 @@ Max pooling 목적
     # train_sample 경로 상의 모든 jpg 파일을 다운 받는다
     # *.jpg -> jpg의 모든 항목 *은 모든이라는 의미
     ```
- 4. Image 랜덤 시드 설정
+ 4. Image 랜덤 시드 설정 :
     경로 설정이 완료되었으면 다운로드한 Image에서 추출해올 이미지를 랜덤으로 정한다. 랜덤 이미지를 설정하면서, Train Data와    
     Validation Data의 갯수로 설정한다. 여기서는 4:1로 설정하였다.
     ```python
@@ -228,7 +228,8 @@ Max pooling 목적
 
         return x
     ```
-  8. Generator
+  8. Generator :
+     실제 흑백 이미지나 이미지를 이용하여 컬러 이미지 또는 복제 이미지를 만들어 내는 부분. LGB 중 흑백 채널만 받아 사용된다
      ```python
      import torch.nn as nn
 
@@ -364,3 +365,72 @@ Max pooling 목적
 
          return output
      ```
+  9. Discriminator :
+     Generator가 보낸 이미지를 실제 이미지인지 가짜 이미지인지 판별하는 부분.
+     ```pyhthon
+     from torch.nn.modules.activation import LeakyReLU
+     from torch.nn.modules.batchnorm import BatchNorm2d
+     import torch.nn as nn
+
+     # Discriminator
+
+     class Pix2Pix_Discriminator(nn.Module):
+       def __init__(self):
+         super().__init__()
+
+         self.model = nn.Sequential(
+             nn.Conv2d(3, 64, kernel_size=4, stride=2, padding=1, bias=False),
+             # discriminator의 input이 3인 이유는 모든 이미지 전체를 받아서 진짜인지 가짜인지 판별하기 때문
+             # generator의 경우 흑백 채널만 받아서 1
+             nn.LeakyReLU(0.2, True),
+             # 0.2는 slope
+             nn.Conv2d(64, 128, kernel_size=4, stride=2, padding=1, bias=False),
+             nn.BatchNorm2d(128),
+             nn.LeakyReLU(0.2, True),
+
+             nn.Conv2d(128, 256, kernel_size=4, stride=2, padding=1, bias=False),
+             nn.BatchNorm2d(256),
+             nn.LeakyReLU(0.2, True),
+
+             nn.Conv2d(256, 512, kernel_size=4, stride=2, padding=1, bias=False),
+             nn.BatchNorm2d(512),
+             nn.LeakyReLU(0.2, True),
+
+             nn.Conv2d(512, 1, kernel_size=4, stride=2, padding=1, bias=False)
+             # output이 1인 이유는 참인지 거짓인지 판별하기 위한 것이므로 1
+         )
+
+       def forward(self, x):
+         return self.model(x)
+     ```
+  10. Initialization function
+  ```python
+  # initialization 함수
+  # Deep learning의 근본 매우 중요!
+
+  def init_weights(m): #m은 layer
+    # layer 가 컨볼루션이라면
+    if type(m) == nn.Conv2d:
+      nn.init.normal_(m.weight.data, mean = 0.0, std = 0.02)
+      print("Conv2d Initialized!")
+    # layer 가 전치컨볼루션이라면
+    elif type(m) == nn.ConvTranspose2d:
+      nn.init.normal_(m.weight.data, mean= 0.0, std= 0.02)
+      print("Transposed Convolution Initialized!")
+    # layer 가 배치놈이라면
+    elif type(m) == nn.BatchNorm2d:
+      nn.init.normal_(m.weight.data, mean= 1.0, std= 0.02)
+      nn.init.constant_(m.bias.data, 0.)
+      print("BatchNorm2d Initialized!")
+
+  def model_initialize(model):
+    model.apply(init_weights)
+    return model
+  ```
+  11. Loss Function : 
+      위의 구성한 네트워크가 얼마나 잘 동작하는지에 대한 평가하는 함수
+      종류는  Loss function/Cost function/Objective function/
+      각 function의 차이점?
+      1. Loss : 하나의 input에 대하여 오차를 계산 (보통 낮춘다, 값이 낮으면 좋다)
+      2. Cost : 모든 input에 대하여 오차를 계산 (보통 낮춘다, 값이 낮으면 좋다)
+      3. Objective : Cost와 동일하게 모든 input에 대하여 오차를 계산 (낮추기도 하고, 높이기도 한다)
